@@ -1,5 +1,3 @@
-
-
 prompt_translate = '''Please translate this text to <<lang>>.
 
 Text:
@@ -53,15 +51,17 @@ def get_prompt_paraphrase(text,req, context,num=1):
         prompt_paraphrase +='\n<answer>...</answer>'
     return prompt_paraphrase
 
-# prompt_fim_example = '''Perform FIM autocompletion, writing text that should replace <FIM> tag in text according to instruction.
-
-# Instruction: no more than 10 words
-
-# Text:
-# India's first prime minister, Jawaharlal Nehru, simultaneously held the post of External Affairs Minister throughout his 17-year premiership and remains the longest-serving External Affairs Minister, followed by S. Jaishankar <FIM>. Several other Prime Ministers have since held the additional charge as the Minister of External Affairs, but never has any other cabinet minister held additional charge of the office
-
-# format your answer as
-# <answer>...</answer>'''
 def get_prompt_fim(context, instruction, num=1):
-    """FIM prompt based on above example"""
-    # ai!  
+    """Generate FIM autocompletion prompt with specified context and instruction"""
+    prompt = f'''Perform FIM autocompletion, writing text that should replace <FIM> tag in text according to instruction.
+
+Instruction: {instruction}
+
+Text:
+{context}
+
+Format your response as:'''
+    
+    for i in range(num):
+        prompt += '\n<answer>...</answer>'
+    return prompt
