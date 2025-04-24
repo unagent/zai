@@ -1,10 +1,9 @@
 from zai.llm_client import call_llm 
 from zai.config import load_config
-from zai.prompts import prompt_translate, prompt_fim, get_prompt_paraphrase
+from zai.prompts import prompt_translate, get_prompt_paraphrase, get_prompt_fim
 import re
 
-from typing import Optional
-from
+from typing import Optional, List
 # config=load_config()
 # print(config)
 
@@ -190,6 +189,34 @@ class FimFileProcessor(RegexFileProcessor):
     def __init__(self, config=None):
         super().__init__(config)
         self.regex = regex_fim
+        self.context_padding = 150
 
-    # ai!
+    def apply(self, file=None):
+        print('Applying FIM processing')
+        with open(file, 'r') as fp:
+            content = fp.read()
 
+        result, match = self.regex.apply(content)
+        if result is None:
+            return None
+
+        fr, to = match.span()
+        context = content[max(0, fr - self.context_padding) : min(len(content), to + self.context_padding)]
+
+        num = int(result['num']) if result['num'] else 1
+        instruction = result['prompt'] if result['prompt'] else ''
+
+        prompt = get_prompt_fim(
+            context=context,
+            instruction=instruction,
+            num=num
+        )
+
+        response = call_llm([{'role': 'user', 'content': prompt}], self.config)
+        answers = extract_answers(response)
+
+        new_content = content[:fr] + '\n'.join(answers) + content[to:]
+
+        with open(file, 'w') as fp:
+            fp.write(new_content)
+        return True
