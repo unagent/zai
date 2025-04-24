@@ -1,8 +1,10 @@
-from llm_client import call_llm 
-from config import load_config
+from zai.llm_client import call_llm 
+from zai.config import load_config
+from zai.prompts import prompt_translate, prompt_fim, get_prompt_paraphrase
 import re
 
 from typing import Optional
+from
 # config=load_config()
 # print(config)
 
@@ -62,56 +64,17 @@ r'<{(.*?)}>#zai_par(_[0-9]{1,2})?(_\([^)]*\))?'
 )
 
 
-prompt_translate = '''Please translate this text to <<lang>>.
+regex_fim = RegexMatcher(
+r'#zaic(_[0-9]{1,2})?(_\([^)]*\))?'
+,['num','prompt'], [lambda x: x[1:], lambda x:x[2:-1]],
+[1,'']
+)
 
-Text:
-<<text>>
-
-Here is broader context, in which sentence appears.
-Please use it to understand text meaning and context.
-
-Context:
-<<context>>
-
-
-Format your response as:
-<answer>
-...
-</answer>
-'''
-
-def get_prompt_paraphrase(text,req, context,num=1):
-
-    what = ''
-    
-    if num > 1:
-        what += f',please provide {num} distinct paraphrases '
-
-    if req is not None and req != '':
-        what += ' according to user requirements.'
-        what += '\nRequirements:' + req
-
-    prompt_paraphrase = '''Please paraphrase or improve
-    this text <<what>>
-
-    Text:
-    <<text>>
-
-
-    Here is broader context, in which sentence appears.
-    Please refer to context to better understand text meaning.
-    Use only text for processing.
-
-    Context:
-    <<context>>
-
-    Please format your answers as follows:
-    '''.replace('<<text>>',text).replace(
-        '<<context>>', context
-    ).replace('<<what>>', what)
-    for i in range(num):
-        prompt_paraphrase +='\n<answer>...</answer>'
-    return prompt_paraphrase
+regex_fim2 = RegexMatcher(
+r'<{([.\n]*?)#zaicc(_[0-9]{1,2})?(_\([^)]*\))?([.\n]*?)'
+,['text_before','num','prompt','text_after'], [lambda x: x[1:], lambda x:x[2:-1]],
+['',1,'','']
+)
 
 def extract_answers(text):
     matches = re.findall(r'<answer>(.*?)</answer>', text, re.DOTALL)
@@ -125,12 +88,6 @@ map_right_to_left = {
     '>': '<'
 }
 
-class RegexMatcher(object):
-    def __init__(self, regex, group_keys):
-        self.regex = regex
-        self.group_keys = group_keys
-
-    
 
 
 class TranslateFileProcessor(FileProcessor):
@@ -185,22 +142,23 @@ class TranslateFileProcessor(FileProcessor):
         return content[:start_of_text] + text +'\n' + answer + '\n' + content[to:]
 
 
-class ParaphraseFileProcessor(TranslateFileProcessor):
+class RegexFileProcessor(FileProcessor):
+    def match(self, content):
+        res, match= self.regex.apply(content)
+        return res is not None
+    
+class ParaphraseFileProcessor(RegexFileProcessor):
     def __init__(self, config=None):
         super().__init__(config)
+        self.regex = regex_paraphrase
 
-    def process_with_marks(self, command_match, content):
-        return super().process_with_marks(command_match, content)
-    def match(self, content):
-        res, match= regex_paraphrase.apply(content)
-        return res is not None
 
     def apply(self,file=None):
         print('apply paraphrase')
         with open(file, 'r') as fp:
             content = fp.read()
 
-        result, match=regex_paraphrase.apply(content)
+        result, match=self.regex.apply(content)
         print(result, match)
         if result is None:
             return None
@@ -227,3 +185,11 @@ class ParaphraseFileProcessor(TranslateFileProcessor):
         with open(file, 'w') as fp:
             fp.write(new_content)
         return True
+
+class FimFileProcessor(RegexFileProcessor):
+    def __init__(self, config=None):
+        super().__init__(config)
+        self.regex = regex_fim
+
+    # ai!
+
