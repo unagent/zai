@@ -1,0 +1,5 @@
+{
+    "OPENAI_API_KEY": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "OPENAI_API_URL": "https://api.deepinfra.com/v1/openai",
+    "OPENAI_API_MODEL": "google/gemma-3-27b-it",
+}
