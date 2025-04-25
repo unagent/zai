@@ -5,7 +5,7 @@ import argparse
 import fnmatch
 from config import load_config
 from typing import List
-from processors import TranslateFileProcessor, FileProcessor, ParaphraseFileProcessor
+from processors import TranslateFileProcessor, FileProcessor, ParaphraseFileProcessor, FimFileProcessor
 
 def handle_change(change_type, file_path, matchers: List[FileProcessor]):
     try:
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     config = load_config(args.config)
-    matchers = [TranslateFileProcessor(config), ParaphraseFileProcessor(config)]
+    matchers = [TranslateFileProcessor(config), ParaphraseFileProcessor(config), FimFileProcessor(config)]
     def file_filter(change_type, file_path):
         return (
             'deleted' not in str(change_type) and

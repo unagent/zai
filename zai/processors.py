@@ -69,6 +69,12 @@ r'#zaic(_[0-9]{1,2})?(_\([^)]*\))?'
 [1,'']
 )
 
+regex_proofread = RegexMatcher(
+r'<{([.\n]*?)}>#zai_proof(_\([^)]*\))?'
+,['content','prompt'], [None, lambda x:x[2:-1]],
+['',1,'']
+)
+
 regex_fim2 = RegexMatcher(
 r'<{([.\n]*?)#zaicc(_[0-9]{1,2})?(_\([^)]*\))?([.\n]*?)'
 ,['text_before','num','prompt','text_after'], [lambda x: x[1:], lambda x:x[2:-1]],
@@ -142,6 +148,9 @@ class TranslateFileProcessor(FileProcessor):
 
 
 class RegexFileProcessor(FileProcessor):
+    def __init__(self, config):
+        self.config = config
+        
     def match(self, content):
         res, match= self.regex.apply(content)
         return res is not None
@@ -189,7 +198,7 @@ class FimFileProcessor(RegexFileProcessor):
     def __init__(self, config=None):
         super().__init__(config)
         self.regex = regex_fim
-        self.context_padding = 150
+        self.context_padding = 250
 
     def apply(self, file=None):
         print('Applying FIM processing')
@@ -201,21 +210,23 @@ class FimFileProcessor(RegexFileProcessor):
             return None
 
         fr, to = match.span()
-        context = content[max(0, fr - self.context_padding) : min(len(content), to + self.context_padding)]
+        context = '...'+content[max(0, fr - self.context_padding) :fr] + \
+                '<FIM>' +  content[to:min(len(content), to + self.context_padding)] + '...'
 
         num = int(result['num']) if result['num'] else 1
         instruction = result['prompt'] if result['prompt'] else ''
-
         prompt = get_prompt_fim(
             context=context,
             instruction=instruction,
             num=num
         )
 
+        print(prompt)
+
         response = call_llm([{'role': 'user', 'content': prompt}], self.config)
         answers = extract_answers(response)
-
-        new_content = content[:fr] + '\n'.join(answers) + content[to:]
+        answers_fmt =  answers[0] if len(answers)==1 else ('\n - ' + '\n - '.join(answers) + '\n')
+        new_content = content[:fr] + answers_fmt + content[to:]
 
         with open(file, 'w') as fp:
             fp.write(new_content)
