@@ -1,5 +1,5 @@
 
-# zAI - Zero Integration AI writing plugin for minimalists and vimmers
+# zAI - Zero Integration AI writing plugin for minimalists.
 
 AI made efficient and controllable -- in any text editor,
 
@@ -10,7 +10,8 @@ AI made efficient and controllable -- in any text editor,
 - 🎓 **Learn once, use anywhere** 🌍 - since it works in any editor, master it once and apply it everywhere.
 - ⚡ **Automating text editing with AI** 🤖 - enabling fast, precise workflows 🎯 for tasks like proofreading, refactoring, or correction ✍️.
 - 🔑 **Bring your own API** - works with any OpenAI-compatible API, including locally hosted ones 🏠 (e.g., using vLLM).
-- 💾 **Store your LLM calls** - save your usage data to potentially finetune your own LLM later 🌱🧠.
+- **Bring your own prompt** - develop own commands easily, without programming. [TODO]
+- 💾 **Store your LLM calls** - save your usage data to potentially finetune your own LLM later 🌱🧠 [TODO]
 - 🆓 **Fully free and open-source** 🔓❤️.
 
 
