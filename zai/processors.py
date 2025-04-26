@@ -1,6 +1,6 @@
 from zai.llm_client import call_llm 
 from zai.config import load_config
-from zai.prompts import prompt_translate, get_prompt_paraphrase, get_prompt_fim
+from zai.prompts import prompt_translate, get_prompt_paraphrase, get_prompt_fim, get_prompt_proofread
 import re
 
 from typing import Optional, List
@@ -16,6 +16,16 @@ class FileProcessor(object):
 
     def get_regex(self, ):
         return None
+
+    def write(self, filename, new_content, old_content):
+        with open(filename, 'r') as fp:
+            reference_content = fp.read()
+        if reference_content != old_content:
+            print("Content changed while processing, aborting!")
+            
+        else:
+            with open(filename, 'w') as fp:
+                fp.write(new_content)
 
 
 import re
@@ -43,40 +53,47 @@ class RegexMatcher(object):
                 if result[k] is None:
                     result[k] = self.defaults[i]
             return result, match
-
-regex_translate = RegexMatcher(
-r'(<{(.*)}>#zai_tr(_[A-Za-z]{2})?(_\([^)]*\))?'
+PREFIX='z_'
+SUFFIX='#'
+CONTEXT_BRACKET='<[',']>' 
+def get_regex_translate():
+    return RegexMatcher(
+r'(<{(.*)}>' + PREFIX+ 'tr(_[A-Za-z]{2})?(_\([^)]*\))?' + SUFFIX
 ,['content','lang','prompt'], [None, lambda x: x[1:], lambda x:x[2:-1]],
 ['',1,'']
 )
 
 regex_check = RegexMatcher(
-r'(<{([.\n]*)}>#zai_check(_\([^)]*\))?'
+r'(<{([.\n]*)}>'+PREFIX+'check(_\([^)]*\))?' + SUFFIX
 ,['content','prompt'], [None, lambda x:x[2:-1]],
 ['',1,'']
 )
 
-regex_paraphrase = RegexMatcher(
-r'<{(.*?)}>#zai_par(_[0-9]{1,2})?(_\([^)]*\))?'
+def get_regex_paraphrase():
+    return RegexMatcher(
+r'<{([\n.]*?)}>' + PREFIX + 'par(_[0-9]{1,2})?(_\([^)]*\))?' + SUFFIX
 ,['content','num','prompt'], [None,lambda x: x[1:], lambda x:x[2:-1]],
 ['',1,'']
 )
 
 
-regex_fim = RegexMatcher(
-r'#zaic(_[0-9]{1,2})?(_\([^)]*\))?'
+def get_regex_fim():
+    return RegexMatcher(
+PREFIX + r'c(_[0-9]{1,2})?(_\([^)]*\))?' + SUFFIX
 ,['num','prompt'], [lambda x: x[1:], lambda x:x[2:-1]],
 [1,'']
 )
 
-regex_proofread = RegexMatcher(
-r'<{([.\n]*?)}>#zai_proof(_\([^)]*\))?'
-,['content','prompt'], [None, lambda x:x[2:-1]],
-['',1,'']
+def get_regex_proofread():
+    return RegexMatcher(
+r'(<\{.*?\}>)' + PREFIX + 'proof(_\([^)]*\))?' + SUFFIX
+,['content','prompt'], [lambda x:x[2:-2], lambda x:x[2:-1]],
+['','']
 )
 
+
 regex_fim2 = RegexMatcher(
-r'<{([.\n]*?)#zaicc(_[0-9]{1,2})?(_\([^)]*\))?([.\n]*?)'
+r'<{([.\n]*?)' + PREFIX + 'cc(_[0-9]{1,2})?(_\([^)]*\))?([.\n]*?)' + SUFFIX
 ,['text_before','num','prompt','text_after'], [lambda x: x[1:], lambda x:x[2:-1]],
 ['',1,'','']
 )
@@ -93,9 +110,29 @@ map_right_to_left = {
     '>': '<'
 }
 
+class RegexFileProcessor(FileProcessor):
+    def __init__(self, config):
+        self.config = config
+        self.context_padding = config.get('context_padding',150)
+
+    def match(self, content):
+        res, match= self.regex.apply(content)
+        return res is not None
+    def get_context(self, content, command_match,parsed_prompt):
+        query_content= parsed_prompt['content']
+        fr, to = command_match.span()
+        if CONTEXT_BRACKET[0] in content[:fr] and CONTEXT_BRACKET[1] in content[to:]:
+            ctx_fr = content[:fr].rfind(CONTEXT_BRACKET[0])
+            ctx_to = to + content[to:].find(CONTEXT_BRACKET[1])
+        else:
+            ctx_fr = max(0, fr - self.context_padding)
+            ctx_to=min(len(content), to + self.context_padding)
+
+        context = '...'+content[ctx_fr:fr] + query_content+ content[to:ctx_to]+'...'
+        return context
 
 
-class TranslateFileProcessor(FileProcessor):
+class TranslateFileProcessor(RegexFileProcessor):
     def __init__(self, config=None):
         self.context_padding = 150
         self.config=config
@@ -128,8 +165,7 @@ class TranslateFileProcessor(FileProcessor):
              content[fr-2:fr] in ['}>'] and '<{' in content[:fr-2]:
             new_content = self.process_with_marks(regex_match, content)
             # print(new_content)
-            with open(file, 'w') as fp:
-                fp.write(new_content)
+            self.write(file, new_content, content)
             return True
         return False
         
@@ -147,18 +183,11 @@ class TranslateFileProcessor(FileProcessor):
         return content[:start_of_text] + text +'\n' + answer + '\n' + content[to:]
 
 
-class RegexFileProcessor(FileProcessor):
-    def __init__(self, config):
-        self.config = config
         
-    def match(self, content):
-        res, match= self.regex.apply(content)
-        return res is not None
-    
 class ParaphraseFileProcessor(RegexFileProcessor):
     def __init__(self, config=None):
         super().__init__(config)
-        self.regex = regex_paraphrase
+        self.regex = get_regex_paraphrase()
 
 
     def apply(self,file=None):
@@ -190,14 +219,13 @@ class ParaphraseFileProcessor(RegexFileProcessor):
         new_content=content[:fr] + result['content'] \
         + '\n - ' + '\n - '.join(answers) + content[to:]
         
-        with open(file, 'w') as fp:
-            fp.write(new_content)
+        self.write(file, new_content, content)
         return True
 
 class FimFileProcessor(RegexFileProcessor):
     def __init__(self, config=None):
         super().__init__(config)
-        self.regex = regex_fim
+        self.regex = get_regex_fim()
         self.context_padding = 250
 
     def apply(self, file=None):
@@ -220,14 +248,38 @@ class FimFileProcessor(RegexFileProcessor):
             instruction=instruction,
             num=num
         )
-
+  
         print(prompt)
-
         response = call_llm([{'role': 'user', 'content': prompt}], self.config)
+        
         answers = extract_answers(response)
         answers_fmt =  answers[0] if len(answers)==1 else ('\n - ' + '\n - '.join(answers) + '\n')
         new_content = content[:fr] + answers_fmt + content[to:]
-
-        with open(file, 'w') as fp:
-            fp.write(new_content)
+        self.write(file, new_content, content)
         return True
+
+class ProofreadProcessor(RegexFileProcessor):
+    def __init__(self, config=None):
+        super().__init__(config)
+        self.regex = get_regex_proofread()
+        self.context_padding = 250
+    def apply(self, file=None):
+        print('Applying proofread')
+        with open(file, 'r') as fp:
+            content = fp.read()
+
+        result, match = self.regex.apply(content)
+        if result is None:
+            return None
+
+        fr, to = match.span()
+        context= self.get_context(content, match, result)
+        prompt = get_prompt_proofread(result['content'], context,result['prompt'])
+        print(prompt)
+        print(result)
+        response = call_llm([{'role': 'user', 'content': prompt}], self.config)
+        answers = extract_answers(response)
+        print(response)
+        print(answers,'len', len(answers))
+        new_content = content[:fr] + answers[0] + content[to:]
+        self.write(file, new_content, content)

@@ -70,7 +70,7 @@ Format your response as:'''
 
 prompt_proofread = '''
 Perform proofreading of text, correcting any grammar error and typos. Please label errors by parentheses, showing text replacement 
-to correct error.
+to correct error. <<hint>>
 
 Here is example:
 Input: 
@@ -85,13 +85,18 @@ I (|am) walking (in|on) the beach.
 
 Here is text to proofread:
 Text:
-{text}
+<<text>>
 
-Here is context, use it to understand text better, but process only text.
-{context}
+Here is context, use it to understand text better. Do not process it, process "Text:" only.
+<<context>>
+
+
 
 Please format your output as follows:
 <answer>...</answer>
 '''
-def get_prompt_proofread(text, context):
+def get_prompt_proofread(text, context,hint):
+    if hint !='':
+        'Also satisfy this hint:' + hint
+    return prompt_proofread.replace('<<text>>',text).replace('<<context>>',context).replace('<<hint>>', hint)
     

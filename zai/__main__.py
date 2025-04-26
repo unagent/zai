@@ -3,12 +3,12 @@ import re
 from pathlib import Path
 import argparse
 import fnmatch
-from config import load_config
+from zai.config import load_config
 from typing import List
-from processors import TranslateFileProcessor, FileProcessor, ParaphraseFileProcessor, FimFileProcessor
+from zai.processors import TranslateFileProcessor, FileProcessor, ParaphraseFileProcessor, ProofreadProcessor, FimFileProcessor
 
 def handle_change(change_type, file_path, matchers: List[FileProcessor]):
-    try:
+    # try:
         print('Passed', file_path) 
         with open(file_path, 'r') as f:
             content = f.read()
@@ -21,10 +21,10 @@ def handle_change(change_type, file_path, matchers: List[FileProcessor]):
             # for line_number, line in enumerate(f, 1):
             #     if re.search(r'#foo\b', line):
             #         print(f"{file_path}:{line_number} - {line.strip()}")
-    except Exception as e:
-        print(f"Error reading {file_path}: {e}")
+    # except Exception as e:
+    #     print(f"Error reading {file_path}: {e}")
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--patterns', nargs='+', default=['*.txt'],
                         help='File patterns to watch (e.g. "*.txt", "src/*.cpp")')
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     config = load_config(args.config)
-    matchers = [TranslateFileProcessor(config), ParaphraseFileProcessor(config), FimFileProcessor(config)]
+    matchers = [TranslateFileProcessor(config), ProofreadProcessor(config), ParaphraseFileProcessor(config), FimFileProcessor(config)]
     def file_filter(change_type, file_path):
         return (
             'deleted' not in str(change_type) and
@@ -48,3 +48,6 @@ if __name__ == '__main__':
         for change_type, path_str in changes:
             file_path = Path(path_str)
             handle_change(change_type, file_path, matchers)
+
+if __name__ == '__main__':
+    main()
