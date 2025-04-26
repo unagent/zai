@@ -8,6 +8,6 @@ def list_prompts(directory):
         with open(v,'r') as fp:
             content = fp.read()
         name = os.path.basename(v).replace('.txt','')
-        # ai! 
-
-
+        all_prompts.append({'name': name, 'content': content})
+    
+    return all_prompts
