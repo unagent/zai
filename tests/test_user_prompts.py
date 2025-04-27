@@ -25,7 +25,7 @@ def test_apply_matches_mismatched():
 
 def test_apply_matches_multiple():
     text = "Hello, <tag> world! <tag2>"
-    matches = list(re.finditer(r'<tag|tag2>', text))
+    matches = list(re.finditer(r'<tag>|<tag2>', text))
     replacements = ["beautiful", "earth"]
     result = apply_matches(text, matches, replacements)
     assert result == "Hello, beautiful world! earth"
