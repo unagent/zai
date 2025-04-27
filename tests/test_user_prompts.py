@@ -3,23 +3,23 @@ from zai.user_prompts import *
 import pytest
 
 def test_apply_matches():
-    text = "Hello, world!"
-    matches = [lambda: 0, lambda: 7]
-    replacements = ["Goodbye", "earth"]
+    text = "Hello, <tag> world!"
+    matches = list(re.finditer(r'<tag>', text))
+    replacements = ["beautiful"]
     result = apply_matches(text, matches, replacements)
-    assert result == "Goodbye, earth!"
+    assert result == "Hello, beautiful world!"
 
 def test_apply_matches_empty():
-    text = "Hello, world!"
-    matches = []
+    text = "Hello, <tag> world!"
+    matches = list(re.finditer(r'<tag>', text))
     replacements = []
-    result = apply_matches(text, matches, replacements)
-    assert result == text
+    with pytest.raises(ValueError):
+        apply_matches(text, matches, replacements)
 
 def test_apply_matches_mismatched():
-    text = "Hello, world!"
-    matches = [lambda: 0, lambda: 7]
-    replacements = ["Goodbye"]
+    text = "Hello, <tag> world! <tag2>"
+    matches = list(re.finditer(r'<tag>', text))
+    replacements = ["beautiful"]
     with pytest.raises(ValueError):
         apply_matches(text, matches, replacements)
 

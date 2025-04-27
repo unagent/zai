@@ -38,6 +38,8 @@ def sort_matches_reverse(matches: typing.List[re.Match]):
     return matches
 
 def apply_matches(text, matches: typing.List[re.Match], replacements: typing.List[str]):
+    if len(matches) != len(replacements):
+        raise ValueError("Number of matches and replacements must be equal")
     matches.sort(key=lambda m: m.start(), reverse=True)                                                                                                                                                                                                                                             
     for match, replacement in zip(matches, replacements):                                                                                                                                                                                                                                           
         start = match.start()                                                                                                                                                                                                                                                                       
