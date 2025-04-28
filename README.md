@@ -83,13 +83,14 @@ Perform autocomplete.
 z_c_(elaborate, unexpected finish, up to 10 words)#
 ```
 
+### User prompts
 User prompt (please use `:` plus prompt name to execute it).
 Keyword arguments are supported.
 
 Here, using provided example we give 3 options of rhymed lines
 for '...while being different from zero at the same time.'
 
-name, req correspond to <<name>> and <<req>> in the prompt template. 
+name, req correspond to `<<name>>` and `<<req>>` in the prompt template. 
 ```
 <{...while being different from zero at the same time.}>z_:rhyme_(num=3)_(req=eloquent, surprising)#
 ```
