@@ -1,13 +1,16 @@
-prompt_translate = '''Please translate this text to <<lang>>.
+prompt_translate = '''Please translate this text to <<lang>>. <<prompt>>
 
 Text:
 <<text>>
 
-Here is broader context, in which sentence appears.
-Please use it to understand text meaning and context.
+Here is broader context, in which Text appears.
+Please use it only to undersand text meaning.
+Translate only Text above, not context.
 
 Context:
 <<context>>
+
+
 
 
 Format your response as:

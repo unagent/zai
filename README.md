@@ -79,10 +79,24 @@ Propose 3 simple short paraphrases of text
 <{Your text goes here}>z_par_3_(short, simple)#
 ```
 
-Perform autocomplete.
+Perform autocomplete (including extra prompt or five different options )
 ```
+z_c#
 z_c_(elaborate, unexpected finish, up to 10 words)#
+z_c_5# 
 ```
+
+Translate to any language supported by LLM.
+```
+<{What is the price of this PC?}>z_tr_DE_(use simple language)#
+<{A formal, axiomatic approach was crucial to resolve ambiguities.}>z_tr_FR#
+```
+
+Proofread:
+```
+<{Text to proofread ...}>z_proof#
+```
+If you want to set context for LLM, while editing large files, please use `<[, ]>` braces. See video for example.
 
 ### User prompts
 User prompt (please use `:` plus prompt name to execute it).

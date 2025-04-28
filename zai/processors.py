@@ -92,12 +92,6 @@ r'(<\{.*?\}>)' + PREFIX + 'proof(_\([^)]*\))?' + SUFFIX
 )
 
 
-regex_fim2 = RegexMatcher(
-r'<{(.*?)' + PREFIX + 'cc(_[0-9]{1,2})?(_\([^)]*\))?([.\n]*?)' + SUFFIX
-,['text_before','num','prompt','text_after'], [lambda x: x[1:], lambda x:x[2:-1]],
-['',1,'','']
-)
-
 def extract_answers(text):
     matches = re.findall(r'<answer>(.*?)</answer>', text, re.DOTALL)
     return [match.strip() for match in matches]
@@ -140,11 +134,11 @@ class TranslateFileProcessor(RegexFileProcessor):
         self.regex =  get_regex_translate()
 
 
-    def exec_llm(self, lang, context, text):
+    def exec_llm(self, lang, context, text, prompt_=''):
         prompt = prompt_translate.replace(
             '<<lang>>', lang
         ).replace('<<context>>', context)\
-        .replace('<<text>>',text)
+        .replace('<<text>>',text).replace('<<prompt>>', prompt_)
         response = call_llm([{'role': 'user', 'content': prompt}], self.config)
         answer_match = re.search(r'<answer>(.*?)</answer>', response, re.DOTALL)
         return answer_match.group(1).strip() if answer_match else response.strip()
@@ -153,20 +147,20 @@ class TranslateFileProcessor(RegexFileProcessor):
         with open(file, 'r') as fp:
             content = fp.read()
 
-        regex_match =  \
-            re.search("#zai_tr_[A-Za-z]{2}", content)
-        if regex_match is None:
+        result, match =  self.regex.apply(content)
+        if match is None:
             return False
         
-        fr, to = regex_match.span()
-        print(regex_match)
-        if fr >= 2 and \
-             content[fr-2:fr] in ['}>'] and '<{' in content[:fr-2]:
-            new_content = self.process_with_marks(regex_match, content)
-            # print(new_content)
-            self.write(file, new_content, content)
-            return True
-        return False
+        fr, to = match.span()
+        context = self.get_context(content, match, result)
+
+        answer = self.exec_llm(result['lang'], context, result['content'],result['prompt'])
+        new_content = content[:fr] +result['content']+'\n'+ answer + content[to:]
+        # if fr >= 2 and \
+        #      content[fr-2:fr] in ['}>'] and '<{' in content[:fr-2]:
+        #     new_content = self.process_with_marks(regex_match, content)
+        #     # print(new_content)
+        self.write(file, new_content, content)
         
     def process_with_marks(self,command_match, content):
         fr, to = command_match.span()
@@ -201,9 +195,7 @@ class ParaphraseFileProcessor(RegexFileProcessor):
         
         # Get context around the match
         fr, to = match.span()
-        context = content[max(0, fr - self.context_padding)
-                        : min(len(content), to + self.context_padding)]
-        
+        context = self.get_context(content, match, result, )   
         prompt = get_prompt_paraphrase(
             text=result['content'],
             req=result['prompt'],
@@ -274,11 +266,8 @@ class ProofreadProcessor(RegexFileProcessor):
         fr, to = match.span()
         context= self.get_context(content, match, result)
         prompt = get_prompt_proofread(result['content'], context,result['prompt'])
-        print(prompt)
-        print(result)
+   
         response = call_llm([{'role': 'user', 'content': prompt}], self.config)
         answers = extract_answers(response)
-        print(response)
-        print(answers,'len', len(answers))
         new_content = content[:fr] + answers[0] + content[to:]
         self.write(file, new_content, content)
