@@ -25,6 +25,7 @@ Inspirations: Aider Chat file watch mode www.aider.chat
 You need Python (I used 3.10 version).
 Please do following
 ```
+pip install watchfiles
 pip install https://github.com/unagent/zai.git
 ```
 # Configuration
