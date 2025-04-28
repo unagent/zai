@@ -1,0 +1,10 @@
+Please write a line 
+that rhymes with this line:
+
+Line:
+<<text>>
+
+<{Here are additional requirements: <<req>>}>
+<{Provide <<num>> different options}>
+
+<FORMAT_ANSWER>

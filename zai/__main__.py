@@ -6,6 +6,7 @@ import fnmatch
 from zai.config import load_config
 from typing import List
 from zai.processors import TranslateFileProcessor, FileProcessor, ParaphraseFileProcessor, ProofreadProcessor, FimFileProcessor
+from zai.user_prompts import UserPromptProcessor, parse_prompts
 
 def handle_change(change_type, file_path, matchers: List[FileProcessor]):
     # try:
@@ -30,10 +31,15 @@ def main():
                         help='File patterns to watch (e.g. "*.txt", "src/*.cpp")')
 
     parser.add_argument('--config', default='config.json')
+    parser.add_argument('--prompts', default='user_prompts/')
     args = parser.parse_args()
     
     config = load_config(args.config)
-    matchers = [TranslateFileProcessor(config), ProofreadProcessor(config), ParaphraseFileProcessor(config), FimFileProcessor(config)]
+
+    prompt_processors = [UserPromptProcessor(p, config) for p in parse_prompts(args.prompts)]
+    matchers = [#TranslateFileProcessor(config), 
+                ProofreadProcessor(config), ParaphraseFileProcessor(config), FimFileProcessor(config)] + \
+        prompt_processors
     def file_filter(change_type, file_path):
         return (
             'deleted' not in str(change_type) and

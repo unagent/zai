@@ -138,9 +138,6 @@ class TranslateFileProcessor(RegexFileProcessor):
         self.config=config
 
 
-    def match(self, content):
-        return '#zai_tr' in content
-
     def exec_llm(self, lang, context, text):
         prompt = prompt_translate.replace(
             '<<lang>>', lang
@@ -249,7 +246,6 @@ class FimFileProcessor(RegexFileProcessor):
             num=num
         )
   
-        print(prompt)
         response = call_llm([{'role': 'user', 'content': prompt}], self.config)
         
         answers = extract_answers(response)

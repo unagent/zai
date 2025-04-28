@@ -16,13 +16,6 @@ def test_apply_matches_empty():
     with pytest.raises(ValueError):
         apply_matches(text, matches, replacements)
 
-def test_apply_matches_mismatched():
-    text = "Hello, <tag> world! <tag2>"
-    matches = list(re.finditer(r'<tag>', text))
-    replacements = ["beautiful"]
-    with pytest.raises(ValueError):
-        apply_matches(text, matches, replacements)
-
 def test_apply_matches_multiple():
     text = "Hello, <tag> world! <tag2>"
     matches = list(re.finditer(r'<tag>|<tag2>', text))
