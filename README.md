@@ -72,6 +72,7 @@ Please refer to `user_prompts/rhyme.txt` for example of user prompt.
 Here are examples of commands. You type command in the text, save file, and the tool finds edited file and reads all the relevant information.
 LLM output will be put directly in your file.
 
+
 Propose 3 simple short paraphrases of text
 ```
 <{Your text goes here}>z_par_3_(short, simple)#
@@ -79,7 +80,7 @@ Propose 3 simple short paraphrases of text
 
 Perform autocomplete.
 ```
-z_c_(elaborate, unexpected finish, up to 10 words)
+z_c_(elaborate, unexpected finish, up to 10 words)#
 ```
 
 User prompt (please use `:` plus prompt name to execute it).
@@ -91,4 +92,7 @@ for '...while being different from zero at the same time.'
 name, req correspond to <<name>> and <<req>> in the prompt template. 
 ```
 <{...while being different from zero at the same time.}>z_:rhyme_(num=3)_(req=eloquent, surprising)#
-``
+```
+
+Commands generally start with chunk of text in <{...}> (if applicable) and z_ as prefix. They end with # suffix (this is to support editors that constantly save files,
+like Obsidian).
