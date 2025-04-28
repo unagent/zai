@@ -10,7 +10,7 @@ AI made efficient and controllable -- in any text editor,
 - 🎓 **Learn once, use anywhere** 🌍 - since it works in any editor, master it once and apply it everywhere.
 - ⚡ **Automating text editing with AI** 🤖 - enabling fast, precise workflows 🎯 for tasks like proofreading, refactoring, or correction ✍️.
 - 🔑 **Bring your own API** - works with any OpenAI-compatible API, including locally hosted ones 🏠 (e.g., using vLLM).
-- **Bring your own prompt** - develop own commands easily, without programming. [TODO]
+- **Bring your own prompt** - develop own commands and prompts easily.
 - 💾 **Store your LLM calls** - save your usage data to potentially finetune your own LLM later 🌱🧠 [TODO]
 - 🆓 **Fully free and open-source** 🔓❤️.
 
@@ -56,4 +56,33 @@ zai --config /home/user/zac/config.json --patterns '*tex' '*.md'
 ```
 Done, now tool will watch for commands that you type in your editor when file is being saved. 
 
+If you want use your own prompt, please call it as follows
 
+```
+zai --config /home/user/zac/config.json --patterns '*tex' '*.txt' --prompts user_prompts/
+```
+where `user_prompts` is directory with prompts. 
+Please refer to `user_prompts/rhyme.txt` for example of user prompt.
+
+## Commands
+
+Here are examples of commands
+
+Propose 3 simple short paraphrases of text
+```
+<{Your text goes here}>z_par_3_(short, simple)#
+```
+
+Perform autocomplete.
+```
+z_c_(elaborate, unexpected finish, up to 10 words)
+```
+
+User prompt (please use `:` plus prompt name to execute it).
+Keyword arguments are supported.
+
+Here, using provided example we give 3 options of rhymed lines
+for '...while being different from zero at the same time.'
+```
+<{...while being different from zero at the same time.}>z_:rhyme_(num=3)_(req=eloquent, surprising)#
+``
