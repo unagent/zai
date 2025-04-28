@@ -58,13 +58,13 @@ SUFFIX='#'
 CONTEXT_BRACKET='<[',']>' 
 def get_regex_translate():
     return RegexMatcher(
-r'(<{(.*)}>' + PREFIX+ 'tr(_[A-Za-z]{2})?(_\([^)]*\))?' + SUFFIX
+r'<{(.*?)}>' + PREFIX+ r'tr(_[A-Za-z]{2})?(_\([^)]*\))?' + SUFFIX
 ,['content','lang','prompt'], [None, lambda x: x[1:], lambda x:x[2:-1]],
 ['',1,'']
 )
 
 regex_check = RegexMatcher(
-r'(<{([.\n]*)}>'+PREFIX+'check(_\([^)]*\))?' + SUFFIX
+r'<{([.\n]*)}>'+PREFIX+'check(_\([^)]*\))?' + SUFFIX
 ,['content','prompt'], [None, lambda x:x[2:-1]],
 ['',1,'']
 )
@@ -116,6 +116,7 @@ class RegexFileProcessor(FileProcessor):
         self.context_padding = config.get('context_padding',150)
 
     def match(self, content):
+
         res, match= self.regex.apply(content)
         return res is not None
     def get_context(self, content, command_match,parsed_prompt):
@@ -136,6 +137,7 @@ class TranslateFileProcessor(RegexFileProcessor):
     def __init__(self, config=None):
         self.context_padding = 150
         self.config=config
+        self.regex =  get_regex_translate()
 
 
     def exec_llm(self, lang, context, text):
@@ -209,6 +211,7 @@ class ParaphraseFileProcessor(RegexFileProcessor):
             num=int(result['num']) if result['num'] else 1
         )
         
+
         response = call_llm([{'role': 'user', 'content': prompt}], self.config)
         answers = extract_answers(response)
         
@@ -235,8 +238,8 @@ class FimFileProcessor(RegexFileProcessor):
             return None
 
         fr, to = match.span()
-        context = '...'+content[max(0, fr - self.context_padding) :fr] + \
-                '<FIM>' +  content[to:min(len(content), to + self.context_padding)] + '...'
+        context = self.get_context(content, match, {'content':'<FIM>'})#'...'+content[max(0, fr - self.context_padding) :fr] + \
+                #'<FIM>' +  content[to:min(len(content), to + self.context_padding)] + '...'
 
         num = int(result['num']) if result['num'] else 1
         instruction = result['prompt'] if result['prompt'] else ''
@@ -246,8 +249,8 @@ class FimFileProcessor(RegexFileProcessor):
             num=num
         )
   
+        print(prompt)
         response = call_llm([{'role': 'user', 'content': prompt}], self.config)
-        
         answers = extract_answers(response)
         answers_fmt =  answers[0] if len(answers)==1 else ('\n - ' + '\n - '.join(answers) + '\n')
         new_content = content[:fr] + answers_fmt + content[to:]

@@ -37,7 +37,7 @@ def main():
     config = load_config(args.config)
 
     prompt_processors = [UserPromptProcessor(p, config) for p in parse_prompts(args.prompts)]
-    matchers = [#TranslateFileProcessor(config), 
+    matchers = [TranslateFileProcessor(config), 
                 ProofreadProcessor(config), ParaphraseFileProcessor(config), FimFileProcessor(config)] + \
         prompt_processors
     def file_filter(change_type, file_path):
