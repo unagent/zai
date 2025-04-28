@@ -71,7 +71,7 @@ r'(<{([.\n]*)}>'+PREFIX+'check(_\([^)]*\))?' + SUFFIX
 
 def get_regex_paraphrase():
     return RegexMatcher(
-r'<{([\n.]*?)}>' + PREFIX + 'par(_[0-9]{1,2})?(_\([^)]*\))?' + SUFFIX
+r'<{(.*?)}>' + PREFIX + 'par(_[0-9]{1,2})?(_\([^)]*\))?' + SUFFIX
 ,['content','num','prompt'], [None,lambda x: x[1:], lambda x:x[2:-1]],
 ['',1,'']
 )
@@ -93,7 +93,7 @@ r'(<\{.*?\}>)' + PREFIX + 'proof(_\([^)]*\))?' + SUFFIX
 
 
 regex_fim2 = RegexMatcher(
-r'<{([.\n]*?)' + PREFIX + 'cc(_[0-9]{1,2})?(_\([^)]*\))?([.\n]*?)' + SUFFIX
+r'<{(.*?)' + PREFIX + 'cc(_[0-9]{1,2})?(_\([^)]*\))?([.\n]*?)' + SUFFIX
 ,['text_before','num','prompt','text_after'], [lambda x: x[1:], lambda x:x[2:-1]],
 ['',1,'','']
 )
