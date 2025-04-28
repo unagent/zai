@@ -56,7 +56,9 @@ zai --config /home/user/zac/config.json --patterns '*tex' '*.md'
 ```
 Done, now tool will watch for commands that you type in your editor when file is being saved. 
 
-If you want use your own prompt, please call it as follows
+
+## Run - with user prompts
+If you want use your own prompts, please call it as follows
 
 ```
 zai --config /home/user/zac/config.json --patterns '*tex' '*.txt' --prompts user_prompts/
@@ -66,7 +68,8 @@ Please refer to `user_prompts/rhyme.txt` for example of user prompt.
 
 ## Commands
 
-Here are examples of commands
+Here are examples of commands. You type command in the text, save file, and the tool finds edited file and reads all the relevant information.
+LLM output will be put directly in your file.
 
 Propose 3 simple short paraphrases of text
 ```
