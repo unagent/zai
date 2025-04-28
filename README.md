@@ -1,8 +1,9 @@
 
 # zAI - Zero Integration AI writing plugin for minimalists.
 
-AI made efficient and controllable -- in any text editor,
+AI made efficient and controllable -- in any text editor (VSC, Obsidian et cetera). 
 
+For best experience I recommend editor that automatically reloads files changed on the disk (as plugin edits files in the background).
 
 ## Goals:
 - 🎯🤖 **Precise control over what the AI is doing**. No need for elaborate natural language 🗣️ descriptions. Control AI precisely with a few ⌨️ macros typed directly in the editor.
@@ -56,7 +57,9 @@ zai --config /home/user/zac/config.json --patterns '*tex' '*.md'
 ```
 Done, now tool will watch for commands that you type in your editor when file is being saved. 
 
-If you want use your own prompt, please call it as follows
+
+## Run - with user prompts
+If you want use your own prompts, please call it as follows
 
 ```
 zai --config /home/user/zac/config.json --patterns '*tex' '*.txt' --prompts user_prompts/
@@ -66,7 +69,9 @@ Please refer to `user_prompts/rhyme.txt` for example of user prompt.
 
 ## Commands
 
-Here are examples of commands
+Here are examples of commands. You type command in the text, save file, and the tool finds edited file and reads all the relevant information.
+LLM output will be put directly in your file.
+
 
 Propose 3 simple short paraphrases of text
 ```
@@ -75,7 +80,7 @@ Propose 3 simple short paraphrases of text
 
 Perform autocomplete.
 ```
-z_c_(elaborate, unexpected finish, up to 10 words)
+z_c_(elaborate, unexpected finish, up to 10 words)#
 ```
 
 User prompt (please use `:` plus prompt name to execute it).
@@ -83,6 +88,11 @@ Keyword arguments are supported.
 
 Here, using provided example we give 3 options of rhymed lines
 for '...while being different from zero at the same time.'
+
+name, req correspond to <<name>> and <<req>> in the prompt template. 
 ```
 <{...while being different from zero at the same time.}>z_:rhyme_(num=3)_(req=eloquent, surprising)#
-``
+```
+
+Commands generally start with chunk of text in <{...}> (if applicable) and z_ as prefix. They end with # suffix (this is to support editors that constantly save files,
+like Obsidian).
