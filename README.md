@@ -2,6 +2,8 @@
 # zAI - Zero Integration AI writing plugin for minimalists.
 
 AI made efficient and controllable -- in any text editor (VSC, Obsidian et cetera). 
+[![Watch video](https://img.youtube.com/vi/pisgDR1FlzE/0.jpg)](https://www.youtube.com/watch?v=pisgDR1FlzE)
+
 
 For best experience I recommend editor that automatically reloads files changed on the disk (as plugin edits files in the background).
 
