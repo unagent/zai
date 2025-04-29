@@ -4,6 +4,7 @@
 AI made efficient and controllable -- in any text editor (VSC, Obsidian et cetera). 
 
 See video:
+
 [![Watch video](https://img.youtube.com/vi/pisgDR1FlzE/0.jpg)](https://www.youtube.com/watch?v=pisgDR1FlzE)
 
 
